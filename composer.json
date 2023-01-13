@@ -3,7 +3,7 @@
         {
             "type":"package",
             "package": {
-              "name": "ThinkBIG-Company/Rehike",
+              "name": "thinkbig-company/rehike",
               "version":"v1.0.0",
               "source": {
                   "url": "https://github.com/ThinkBIG-Company/Rehike.git",
