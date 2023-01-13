@@ -1,16 +1,7 @@
 {
-    "repositories": [
-        {
-            "type":"package",
-            "package": {
-              "name": "thinkbig-company/rehike",
-              "version":"v1.0.0",
-              "source": {
-                  "url": "https://github.com/ThinkBIG-Company/Rehike.git",
-                  "type": "git",
-                  "reference":"v1.0.0"
-                }
-            }
-        }
-    ]
+    "require": {
+        "twig/twig": "~3.3",
+        "rehike/spfphp": "^1.0",
+        "google/protobuf": "^3.21"
+    }
 }
