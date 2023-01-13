@@ -1,13 +1,12 @@
 <?php
-
 namespace Rehike;
 
-use Rehike\Signin\AuthManager;
 use YukisCoffee\CoffeeRequest\CoffeeRequest;
+use Rehike\Signin\AuthManager;
 
 /**
  * Implements the Rehike request manager.
- *
+ * 
  * @author Taniko Yamamoto <kirasicecreamm@gmail.com>
  * @author The Rehike Maintainers
  */
@@ -26,29 +25,29 @@ class Request
     const NS_INITIALDATA = "NS_INITIALDATA";
     const NS_DATAAPI = "NS_DATAAPI";
 
-    /**
+    /** 
      * A namespace map for remembering the types of a queued request.
-     *
+     * 
      * @var array[]
      */
     protected static $namespacedRequestMap = [];
 
     /**
      * A associative array of RequestManagers by namespace.
-     *
+     * 
      * @var CoffeeRequest[]
      */
     protected static $requestManagers = [];
 
     /**
      * Stores the current namespace.
-     *
+     * 
      * @var string
      */
     protected static $requestNamespace;
 
     public static $innertubeHeaders = [];
-
+    
     public static function __initStatic()
     {
         Request::init();
@@ -61,7 +60,7 @@ class Request
 
     /**
      * Get the current namespace that requests will be wrote to.
-     *
+     * 
      * @return string
      */
     public static function getNamespace()
@@ -71,7 +70,7 @@ class Request
 
     /**
      * Set the namespace.
-     *
+     * 
      * @param string $namespace
      * @return void
      */
@@ -79,7 +78,8 @@ class Request
     {
         self::$requestNamespace = $namespace;
 
-        if (!isset(self::$namespacedRequestMap[$namespace])) {
+        if (!isset(self::$namespacedRequestMap[$namespace]))
+        {
             self::$namespacedRequestMap[$namespace] = [];
             self::$requestManagers[$namespace] = new CoffeeRequest();
             self::$requestManagers[$namespace]->requestsMaxAttempts = 1;
@@ -88,7 +88,7 @@ class Request
 
     /**
      * Clear the namespace back to the default.
-     *
+     * 
      * @return void
      */
     public static function clearNamespace()
@@ -98,7 +98,7 @@ class Request
 
     /**
      * Get the namespace's RequestManager.
-     *
+     * 
      * @return CoffeeRequest
      */
     protected static function getRequestManager()
@@ -108,17 +108,18 @@ class Request
 
     /**
      * Enable authentication from the signin service.
-     *
+     * 
      * @return void
      */
     public static function useAuth()
     {
-        if (AuthManager::shouldAuth()) {
+        if (AuthManager::shouldAuth())
+        {
             self::$innertubeHeaders += [
                 "Authorization" => AuthManager::getAuthHeader(),
                 "Origin" => "https://www.youtube.com",
                 "Host" => "www.youtube.com",
-                "User-Agent" => $_SERVER['HTTP_USER_AGENT'] ?? ""
+                "User-Agent" => $_SERVER['HTTP_USER_AGENT']  ?? ""
             ];
         }
     }
@@ -126,18 +127,19 @@ class Request
     /**
      * Use the account's gaia ID for authenticating
      * InnerTube requests.
-     *
+     * 
      * @return void
      */
     public static function authUseGaiaId()
     {
         $gaiaId = AuthManager::getGaiaId();
-
+            
         /*
          * No GAIA ID is reported for channels associated with the Google
          * account itself. Only brand accounts must account for the distinction.
          */
-        if ("" != $gaiaId) {
+        if ("" != $gaiaId)
+        {
             self::$innertubeHeaders += [
                 /*
                  * TODO(dcooper): Invalid AuthUser use.
@@ -155,7 +157,7 @@ class Request
 
     /**
      * Add a request to the queue.
-     *
+     * 
      * @param mixed[] $requestArray
      * @return void
      */
@@ -171,11 +173,11 @@ class Request
     /**
      * Wrap a set of functions to operate in a separate namespace
      * as the rest of the code.
-     *
+     * 
      * Essentially, this implements a convenient namespace switch
      * because our code isn't bad enough as it is (actually this
      * makes it more bearable).
-     *
+     * 
      * @param string $namespace to switch to
      * @param callback $cb (what to do)
      * @return mixed
@@ -195,36 +197,37 @@ class Request
 
     /**
      * A useful wrapper for generating single request functions.
-     *
+     * 
      * @param callback $cb (adds the request to queue)
      * @return mixed
      */
     public static function singleRequestWrapper($cb)
     {
-        return self::namespaceWrap("_singleRequest", function () use ($cb) {
+        return self::namespaceWrap("_singleRequest", function() use ($cb) {
             $cb();
-
+            
             return self::getResponses()["singleRequest"];
         });
     }
-
+    
     /**
      * Handle initial data responses.
-     *
+     * 
      * @param string $response
      * @return string
      */
     protected static function handleInitialDataResponse($response)
     {
         preg_match("/var ytInitialData = ({.*)?;</", $response, $matches);
-        if ($matches[1]) {
+        if ($matches[1])
+        {
             return $matches[1];
         }
     }
 
     /**
      * Execute all queued requests and get the responses.
-     *
+     * 
      * @return mixed[]
      */
     public static function getResponses()
@@ -233,7 +236,8 @@ class Request
         static $final = [];
 
         // Find namespace for handling
-        foreach (self::$namespacedRequestMap[self::getNamespace()] as $id => $namespace) {
+        foreach (self::$namespacedRequestMap[self::getNamespace()] as $id => $namespace)
+        {
             $me = @$responses["{$namespace}_{$id}"];
             if (!isset($me)) continue; // assume errored
 
@@ -247,7 +251,8 @@ class Request
             // FUCK YOU FUCK YOU FUCK YOU FUCK YOU FUCK YOU FUCK YOU FCUK YOU FKC OUY K UGF OUY KO UYOUCKOU
             if (isset($final[$id])) unset($final[$id]);
 
-            switch ($namespace) {
+            switch ($namespace)
+            {
                 case self::NS_INITIALDATA:
                     $final += [$id => self::handleInitialDataResponse($me)];
                     break;

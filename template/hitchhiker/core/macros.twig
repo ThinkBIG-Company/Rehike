@@ -1,0 +1,11 @@
+{%- macro js(name) -%}
+<script src="{{ jsPath(name, ytConstants) }}" type="text/javascript" name="{{ name }}"></script>
+{% endmacro %}
+
+{%- macro css(name) -%}
+<link rel="stylesheet" href="{{ cssPath(name, yt.PREF, ytConstants) }}" name="{{ name }}">
+{% endmacro %}
+
+{% macro sprite(sprite, alt) %}
+<span {{ alt ? ('title="' ~ alt ~ '"')|raw }} class="{{ sprite }} yt-sprite"></span>
+{% endmacro %}

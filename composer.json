@@ -1,7 +1,15 @@
 {
+    "name": "thinkbig-company/rehike",
+    "description": "Test",
+    "license": "MIT",
     "require": {
         "twig/twig": "~3.3",
         "rehike/spfphp": "^1.0",
         "google/protobuf": "^3.21"
+    },
+    "autoload": {
+        "psr-4": {
+            "Rehike\\": "modules/Rehike/"
+        }
     }
 }

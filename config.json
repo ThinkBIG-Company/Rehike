@@ -1,0 +1,19 @@
+{
+    "appearance": {
+        "modernLogo": true,
+        "uploadButtonType": "MENU",
+        "largeSearchResults": true,
+        "showVersionInFooter": true,
+        "usernamePrepends": false,
+        "useRyd": true,
+        "noViewsText": false,
+        "movingThumbnails": true,
+        "cssFixes": true,
+        "watchSidebarDates": false,
+        "teaserReplies": false,
+        "oldBestOfYouTubeIcons": false
+    },
+    "advanced": {
+        "enableDebugger": false
+    }
+}

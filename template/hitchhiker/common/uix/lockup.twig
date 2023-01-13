@@ -1,0 +1,169 @@
+{#
+ # Lockup V2
+ # A replacement for absolutely abhorrent Lockup V1.
+ #
+ # @author Aubrey Pankow <aubyomori@gmail.com>
+ #}
+
+{% macro main(data, style, thumbX, thumbY, config) %}
+    {% from "common/uix/lockup/thumb.twig" import render as thumb %}
+    {% from "common/uix/button.twig" import render as button %}
+    {% if data.info %}
+        {% set info = data.info %}
+        {% if data.type == "channel" %}
+            {% set thumbX = thumbY %}
+        {% endif %}
+        <{{ config.type ?? "div" }} class="yt-lockup yt-lockup-{{ style }} yt-lockup-{{ data.type }} clearfix {% for class in config.class %}{{ class ~ " " }}{% endfor %}">
+            <div class="yt-lockup-dismissible {{ style == "tile" ? "yt-uix-tile" }}">
+                {%- if data.type == "channel" -%}
+                {{ thumb(data, thumbY, thumbY) }}
+                {%- elseif data.type == "movie" -%}
+                {{ thumb(data, thumbX, (thumbX * 1.43)|round) }}
+                {%- else -%}
+                {{ thumb(data, thumbX, thumbY) }}
+                {%- endif -%}
+                <div class="yt-lockup-content">
+                    {% if info.topStandaloneBadge %}
+                    <span class="yt-badge standalone-collection-badge-renderer-icon">
+                        {{ info.topStandaloneBadge.metadataBadgeRenderer.label }}
+                    </span>
+                    {% endif %}
+                    <h3 class="yt-lockup-title {{ info.menu ? "contains-action-menu" }}">
+                        <a href="{{ getUrl(info) }}" class="spf-link yt-uix-tile-link yt-ui-ellipsis yt-ui-ellipsis-2" title="{{ getText(info.title) }}">
+                            {{ getText(info.title) }}
+                            {% if data.type == "channel" and info.ownerBadges %}
+                                <span title="{{ yt.msgs.verified }}" class="yt-uix-tooltip yt-channel-title-icon-verified yt-sprite"></span>
+                            {% endif %}
+                        </a>
+                        {%- if getVideoTime(info) != null -%}
+                            {{ _self.a11yDesc(getVideoTime(info)) }}
+                        {% endif %}
+                    </h3>
+                    {% if getByline(info) != null and data.type != "channel" %}
+                    {% set byline = getByline(info) %}
+                    <div class="yt-lockup-byline">
+                        {% set bylineUrl = getUrl(byline.runs[0]) %}
+                        {% if bylineUrl %}
+                            {{ yt.config.appearance.usernamePrepends ? yt.msgs.usernamePrepend }}
+                            <a href="{{ getUrl(byline.runs[0]) }}" class="spf-link">{{ getText(byline) }}</a>
+                            {% if info.ownerBadges %}
+                                <span title="{{ yt.msgs.verified }}" class="yt-uix-tooltip yt-channel-title-icon-verified yt-sprite"></span>
+                            {% endif %}
+                        {% else %}
+                            {# If there is no byline URL, then it's probably something else (like mixes byline) #}
+                            {{ getText(byline) }}
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    {% if data.type == "playlist" or data.type == "radio" %}
+                    {{ _self.playlistMeta(data, style) }}
+                    {% elseif getMeta(info) != false %}
+                    <div class="yt-lockup-meta">
+                        <ul class="yt-lockup-meta-info">
+                            {% for meta in getMeta(info) %}
+                            <li>{{ getText(meta) }}</li>
+                            {% endfor %}
+                            {% if info.upcomingEventData %}
+                                {# hitchhiker localized date hack #}
+                                <li>
+                                    {%- for run in info.upcomingEventData.upcomingEventText.runs -%}
+                                        {%- if run.text == "DATE_PLACEHOLDER" -%}
+                                        <span class="localized-date" data-timestamp="{{ info.upcomingEventData.startTime }}" data-format="longdateonly"></span>
+                                        {%- else -%}
+                                        {{ run.text }}
+                                        {%- endif -%}
+                                    {%- endfor -%}
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    {% if style == "tile" and getDescSnippet(info) != false %}
+                    <div class="yt-lockup-description yt-ui-ellipsis yt-ui-ellipsis-2">
+                        {{ getText(getDescSnippet(info))|nl2br }}
+                    </div>
+                    {% endif %}
+                    {%- if info.buttons -%}
+                    <div class="yt-lockup-meta">
+                        {%- for btn in info.buttons -%}
+                            {%- if btn.toggleButtonRenderer -%}
+                                {%- set this = btn.toggleButtonRenderer -%}
+                                {%- if this.defaultServiceEndpoint.addUpcomingEventReminderEndpoint -%}
+                                <span class="yt-uix-livereminder">
+                                    {{ button({
+                                        style: "STYLE_DEFAULT",
+                                        size: "SIZE_SMALL",
+                                        icon: true,
+                                        class: [
+                                            "yt-uix-livereminder-main-button"
+                                        ],
+                                        tooltip: this.defaultTooltip,
+                                        text: this.isToggled ? this.toggledText : this.defaultText,
+                                        attributes: {
+                                            "uix-livereminder-video-id": info.videoId,
+                                            "reminder-set-text": getText(this.toggledText),
+                                            "href": "",
+                                            "set-reminder-text": getText(this.defaultText)
+                                        }
+                                    }) }}
+                                </span>
+                                {%- endif -%}
+                            {%- endif -%}
+                        {%- endfor -%}
+                    </div>
+                    {%- endif -%}
+                </div>
+            </div>
+        </{{ config.type ?? "div" }}>
+    {% endif %}
+{% endmacro %}
+
+{% macro playlistMeta(data, style) %}
+{% set info = data.info %}
+{%- if style == "tile" -%}
+<ol class="yt-lockup-meta yt-lockup-playlist-items">
+    {% for video in info.videos %}
+        {% if video.childVideoRenderer %}
+            {% set this = video.childVideoRenderer %}
+            <li class="yt-lockup-playlist-item clearfix">
+                <span class="yt-lockup-playlist-item-length">{{ getVideoTime(this) }}</span>
+                <a href="{{ getUrl(this) }}" class="yt-lockup-playlist-item-title spf-link">{{ getText(this.title) }}</a>
+            </li>
+        {% endif %}
+    {% endfor %}
+</ol>
+{%- endif -%}
+<div class="yt-lockup-meta">
+    <ul class="yt-lockup-meta-info">
+        <li>
+            <a href="{{ getUrl(info.viewPlaylistText.runs[0]) }}" class="spf-link">{{ getText(info.viewPlaylistText) }}{% if data.type == "playlist" %} ({{ getText(info.videoCountText) }}){% endif %}</a>
+        </li>
+    </ul>
+</div>
+{% endmacro %}
+
+{% macro grid(data, thumbX = 196, thumbY = 110, config) %}
+    {{ _self.main(getLockupInfo(data), "grid", thumbX, thumbY, config) }}
+{% endmacro %}
+
+{% macro tile(data, thumbX = 196, thumbY = 110, config) %}
+    {{ _self.main(getLockupInfo(data), "tile", thumbX, thumbY, config) }}
+{% endmacro %}
+
+{# LEGACY #}
+{%- macro title(info, type, overflow = true, class) -%}
+<h3 class="yt-lockup-title ">
+   <a href="{{ getUrl(info) }} " class=" {% if overflow %}yt-ui-ellipsis yt-ui-ellipsis-2{% endif %}   {{ class ?: "" }}    spf-link "   title="{{ getText(info.title) }}" aria-describedby="description-id-{{ generateRid }}" dir="ltr">
+   {{ getText(info.title) }}{% if info.ownerBadges and type == "channel" %}    <span title="{{ yt.msgs.verified }}" class="yt-uix-tooltip yt-channel-title-icon-verified yt-sprite"></span>{% endif %}
+   </a>
+   {%- if getVideoTime(info) != null -%}
+      {{ _self.a11yDesc(getVideoTime(info)) }}
+   {% endif %}
+</h3>
+{%- endmacro -%}
+
+{% macro a11yDesc(lengthText) %}
+<span class="accessible-description" id="description-id-{{ generateRid() }}">
+   {{ yt.msgs.durationA11y|format(lengthText) }}
+</span>
+{% endmacro %}
