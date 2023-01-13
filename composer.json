@@ -8,7 +8,7 @@
         "google/protobuf": "^3.21"
     },
     "autoload": {
-        "psr-4": {
+        "psr-0": {
             "Rehike\\": ""
         }
     }
