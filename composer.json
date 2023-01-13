@@ -1,0 +1,16 @@
+{
+    "repositories": [
+        {
+            "type":"package",
+            "package": {
+              "name": "ThinkBIG-Company/materializecss-laravel-pagination",
+              "version":"v1.0.0",
+              "source": {
+                  "url": "https://github.com/ThinkBIG-Company/Rehike.git",
+                  "type": "git",
+                  "reference":"v1.0.0"
+                }
+            }
+        }
+    ]
+}
